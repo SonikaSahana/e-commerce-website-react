@@ -14,7 +14,7 @@ const Home = () => {
 
   return (
     <Container className="mt-5">
-      <h2 className="text-center mb-4">Products</h2>
+      <h2 className="text-center mb-4">Music Albums</h2>
       <Row>
         {productsArr.map((product, index) => (
           <Col key={index} md={3} className="mb-4">
@@ -29,6 +29,10 @@ const Home = () => {
           </Col>
         ))}
       </Row>
+      
+      <div className="text-center mt-4">
+        <Button variant="primary">See the Cart</Button>
+      </div>
     </Container>
   );
 };
