@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Modal, Table, Button } from "react-bootstrap";
+import { CartContext } from "./CartContext";
 
-const Cart = ({ show, handleClose, cartItems, removeItem }) => {
+const Cart = ({ show, handleClose }) => {
+  const { cart, removeItem } = useContext(CartContext);
+
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>Shopping Cart</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {cartItems.length > 0 ? (
+        {cart.length > 0 ? (
           <Table striped bordered hover>
             <thead>
               <tr>
@@ -20,7 +23,7 @@ const Cart = ({ show, handleClose, cartItems, removeItem }) => {
               </tr>
             </thead>
             <tbody>
-              {cartItems.map((item, index) => (
+              {cart.map((item, index) => (
                 <tr key={index}>
                   <td>
                     <img src={item.imageUrl} alt={item.title} width="50" />
@@ -29,9 +32,7 @@ const Cart = ({ show, handleClose, cartItems, removeItem }) => {
                   <td>${item.price}</td>
                   <td>{item.quantity}</td>
                   <td>
-                    <Button variant="danger" size="sm" onClick={() => removeItem(index)}>
-                      Remove
-                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => removeItem(index)}>Remove</Button>
                   </td>
                 </tr>
               ))}
