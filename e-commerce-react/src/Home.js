@@ -1,76 +1,84 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Container, Row, Col, Card, Button, Spinner } from "react-bootstrap";
 
 const Home = () => {
-  const [products, setProducts] = useState([]);
+  const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [retrying, setRetrying] = useState(false);
-  const [retryTimeout, setRetryTimeout] = useState(null); // Track retry timeout
+  const [retryTimeout, setRetryTimeout] = useState(null);
 
-  // Function to fetch products
-  const fetchProducts = async () => {
+  
+  const fetchMovies = useCallback(async () => {
     try {
       setLoading(true);
-      setError("");
-      const response = await fetch("https://fakestoreapi.com/products");
-      
+      setError(null);
+      const response = await fetch("https://fakestoreapi.com/products"); 
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status}`);
       }
-      
       const data = await response.json();
-      setProducts(data);
-      setLoading(false);
+      setMovies(data);
+      setRetrying(false);
+      clearTimeout(retryTimeout); 
     } catch (err) {
-      setError("Something went wrong... Retrying");
+      setError("Something went wrong ...Retrying");
+      if (!retrying) {
+        startRetry();
+      }
+    } finally {
       setLoading(false);
-      
-      setRetrying(true);
-      const timeout = setTimeout(fetchProducts, 5000); 
-      setRetryTimeout(timeout);
     }
-  };
+  }, [retrying, retryTimeout]);
 
-  useEffect(() => {
-    fetchProducts();
-    return () => clearTimeout(retryTimeout); 
-  }, []);
+  const startRetry = useCallback(() => {
+    setRetrying(true);
+    const timeout = setTimeout(() => {
+      fetchMovies();
+    }, 5000);
+    setRetryTimeout(timeout);
+  }, [fetchMovies]);
+
+
+  const stopRetry = useCallback(() => {
+    setRetrying(false);
+    clearTimeout(retryTimeout);
+    setError("Retrying stopped by user.");
+  }, [retryTimeout]);
 
   
-  const stopRetrying = () => {
-    clearTimeout(retryTimeout);
-    setRetrying(false);
-    setError("Fetching stopped by user.");
-  };
+  useEffect(() => {
+    fetchMovies();
+    return () => clearTimeout(retryTimeout); 
+  }, [fetchMovies, retryTimeout]); 
+
+  
+  const memoizedMovies = useMemo(() => movies, [movies]);
 
   return (
     <Container className="mt-5">
-      <h2 className="text-center mb-4">Music Albums</h2>
-
+      <h2 className="text-center mb-4">Movie List</h2>
       {loading ? (
         <div className="text-center">
           <Spinner animation="border" />
-          <p>Loading Products...</p>
+          <p>Loading Movies...</p>
         </div>
       ) : error ? (
         <div className="text-center">
           <p className="text-danger">{error}</p>
-          {retrying && (
-            <Button variant="danger" onClick={stopRetrying}>
-              Cancel Retry
-            </Button>
-          )}
+          <Button variant="danger" onClick={stopRetry}>
+            Cancel Retry
+          </Button>
         </div>
       ) : (
         <Row>
-          {products.map((product) => (
-            <Col key={product.id} md={3} className="mb-4">
+          {memoizedMovies.map((movie) => (
+            <Col key={movie.id} md={3} className="mb-4">
               <Card>
-                <Card.Img variant="top" src={product.image} alt={product.title} />
+                <Card.Img variant="top" src={movie.image} alt={movie.title} />
                 <Card.Body>
-                  <Card.Title>{product.title}</Card.Title>
-                  <Card.Text>Price: ${product.price}</Card.Text>
+                  <Card.Title>{movie.title}</Card.Title>
+                  <Card.Text>Price: ${movie.price}</Card.Text>
                   <Button variant="success">Add to Cart</Button>
                 </Card.Body>
               </Card>
