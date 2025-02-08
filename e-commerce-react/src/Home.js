@@ -1,38 +1,47 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Spinner } from "react-bootstrap";
-import { CartContext } from "./CartContext";
 
 const Home = () => {
-  const { addToCart } = useContext(CartContext);
-  const [products, setProducts] = useState([]); 
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [addingToCart, setAddingToCart] = useState({}); 
+  const [error, setError] = useState("");
+  const [retrying, setRetrying] = useState(false);
+  const [retryTimeout, setRetryTimeout] = useState(null); // Track retry timeout
+
+  // Function to fetch products
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await fetch("https://fakestoreapi.com/products");
+      
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setProducts(data);
+      setLoading(false);
+    } catch (err) {
+      setError("Something went wrong... Retrying");
+      setLoading(false);
+      
+      setRetrying(true);
+      const timeout = setTimeout(fetchProducts, 5000); 
+      setRetryTimeout(timeout);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch("https://fakestoreapi.com/products"); 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        setProducts(data); 
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProducts();
+    return () => clearTimeout(retryTimeout); 
   }, []);
 
-  const handleAddToCart = (product) => {
-    setAddingToCart((prev) => ({ ...prev, [product.id]: true }));
-    addToCart(product);
-    setTimeout(() => {
-      setAddingToCart((prev) => ({ ...prev, [product.id]: false }));
-    }, 500); 
+  
+  const stopRetrying = () => {
+    clearTimeout(retryTimeout);
+    setRetrying(false);
+    setError("Fetching stopped by user.");
   };
 
   return (
@@ -44,6 +53,15 @@ const Home = () => {
           <Spinner animation="border" />
           <p>Loading Products...</p>
         </div>
+      ) : error ? (
+        <div className="text-center">
+          <p className="text-danger">{error}</p>
+          {retrying && (
+            <Button variant="danger" onClick={stopRetrying}>
+              Cancel Retry
+            </Button>
+          )}
+        </div>
       ) : (
         <Row>
           {products.map((product) => (
@@ -53,13 +71,7 @@ const Home = () => {
                 <Card.Body>
                   <Card.Title>{product.title}</Card.Title>
                   <Card.Text>Price: ${product.price}</Card.Text>
-                  <Button
-                    variant="success"
-                    onClick={() => handleAddToCart(product)}
-                    disabled={addingToCart[product.id]}
-                  >
-                    {addingToCart[product.id] ? "Adding..." : "Add to Cart"}
-                  </Button>
+                  <Button variant="success">Add to Cart</Button>
                 </Card.Body>
               </Card>
             </Col>
