@@ -56,6 +56,7 @@ const App = () => {
             <Button variant="light" onClick={() => setShowCart(true)}>
               🛒 Cart ({totalItems})
             </Button>
+            <Button variant="danger" onClick={logout}>Logout</Button> 
           </Nav>
         </Container>
       </Navbar>
