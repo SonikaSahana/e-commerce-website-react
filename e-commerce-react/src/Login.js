@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "./store/AuthContext";
 import "./Login.css"; 
 
 const Login = () => {
@@ -6,6 +7,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { login } = useContext(AuthContext); 
 
   const loginHandler = async (e) => {
     e.preventDefault();
@@ -18,13 +20,11 @@ const Login = () => {
       const response = await fetch(API_URL, {
         method: "POST",
         body: JSON.stringify({
-          email: email,
-          password: password,
+          email,
+          password,
           returnSecureToken: true,
         }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       const data = await response.json();
@@ -33,14 +33,14 @@ const Login = () => {
         throw new Error(data.error.message || "Authentication failed");
       }
 
-      console.log("Token:", data.idToken); 
-      localStorage.setItem("token", data.idToken);
+      console.log("Token:", data.idToken);
+      login(data.idToken); 
 
-      alert("Login successful!"); 
+      alert("Login successful!");
     } catch (err) {
       setError("Authentication Failed! Please check your credentials.");
     }
-    
+
     setLoading(false);
   };
 
@@ -48,26 +48,10 @@ const Login = () => {
     <div className="login-container">
       <h2>Login</h2>
       <form onSubmit={loginHandler}>
-        <input
-          type="email"
-          placeholder="Enter Email"
-          className="login-input"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Enter Password"
-          className="login-input"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <input type="email" placeholder="Enter Email" className="login-input" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="password" placeholder="Enter Password" className="login-input" value={password} onChange={(e) => setPassword(e.target.value)} required />
         {error && <p className="error-message">{error}</p>}
-        <button type="submit" className="login-btn" disabled={loading}>
-          {loading ? <div className="loader"></div> : "Login"}
-        </button>
+        <button type="submit" className="login-btn" disabled={loading}>{loading ? <div className="loader"></div> : "Login"}</button>
       </form>
     </div>
   );
