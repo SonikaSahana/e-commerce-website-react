@@ -9,6 +9,7 @@ import About from "./About";
 import ContactUs from "./ContactUs";
 import ProductDetails from "./ProductDetails";
 import Signup from "./Signup"; 
+import Login from "./Login";
 
 const App = () => {
   const { totalItems } = useContext(CartContext);
@@ -29,6 +30,9 @@ const App = () => {
             <NavLink to="/signup" className={({ isActive }) => (isActive ? "active nav-link" : "nav-link")} style={{ color: "white" }}>
               Sign Up
             </NavLink>
+            <NavLink to="/login" className={({ isActive }) => (isActive ? "active nav-link" : "nav-link")} style={{ color: "white" }}>
+              Login
+            </NavLink>
             <Button variant="light" onClick={() => setShowCart(true)}>
               🛒 Cart ({totalItems})
             </Button>
@@ -42,6 +46,7 @@ const App = () => {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/products/:productId" element={<ProductDetails />} />
         <Route path="/signup" element={<Signup />} /> 
+        <Route path="/login" element={<Login />} />
       </Routes>
 
       <Cart show={showCart} handleClose={() => setShowCart(false)} />
